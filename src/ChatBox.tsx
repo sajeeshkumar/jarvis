@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 
-// Base URL from environment variable
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+// Base URLs from environment variables
+const engineeringApiBaseUrl = import.meta.env.VITE_ENGINEERING_API_BASE_URL;
+const solutionArchitectApiBaseUrl = import.meta.env.VITE_SOLUTION_ARCHITECT_API_BASE_URL;
 
 const ChatBox: React.FC = () => {
   const [query, setQuery] = useState<string>("");
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [advisorType, setAdvisorType] = useState<string>("engineeringmanagement"); // Default advisor type
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,6 +18,11 @@ const ChatBox: React.FC = () => {
     setResponse(null);
 
     try {
+      const apiBaseUrl =
+        advisorType === "engineeringmanagement"
+          ? engineeringApiBaseUrl
+          : solutionArchitectApiBaseUrl;
+
       const res = await axios.post(`${apiBaseUrl}/query`, {
         prompt: query,
       });
@@ -33,6 +40,16 @@ const ChatBox: React.FC = () => {
       <h1 style={styles.header}>Chat with Jarvis</h1>
 
       <form onSubmit={handleSubmit} style={styles.form}>
+        <label style={styles.label}>Select Advisor:</label>
+        <select
+          style={styles.select}
+          value={advisorType}
+          onChange={(e) => setAdvisorType(e.target.value)}
+        >
+          <option value="engineeringmanagement">Engineering Management Advisor</option>
+          <option value="solutionarchitect">Solution Architect Advisor</option>
+        </select>
+
         <label style={styles.label}>Your question:</label>
         <textarea
           style={styles.textarea}
@@ -85,6 +102,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "18px",
     fontWeight: "bold",
     color: "#555",
+  },
+  select: {
+    padding: "10px",
+    fontSize: "16px",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    width: "100%",
   },
   textarea: {
     padding: "15px",
