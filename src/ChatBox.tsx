@@ -11,6 +11,7 @@ const ChatBox: React.FC = () => {
   const [fileResults, setFileResults] = useState<{ file_name: string; chunk: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [advisorType, setAdvisorType] = useState<string>("engineeringmanagement"); // Default advisor type
+  const [selectedExcerpt, setSelectedExcerpt] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,10 +31,12 @@ const ChatBox: React.FC = () => {
 
       const { response: responseText, search_results: searchResults } = res.data;
       setResponse(responseText);
-      setFileResults(searchResults.map((result: any) => ({
-        file_name: result.file_name,
-        chunk: result.chunk,
-      })));
+      setFileResults(
+        searchResults.map((result: any) => ({
+          file_name: result.file_name,
+          chunk: result.chunk,
+        }))
+      );
     } catch (error) {
       setResponse("Error: Unable to fetch response. Please try again.");
       console.error(error);
@@ -42,8 +45,12 @@ const ChatBox: React.FC = () => {
     }
   };
 
-  const showExcerptPopup = (excerpt: string) => {
-    alert(excerpt);
+  const openExcerptPopup = (excerpt: string) => {
+    setSelectedExcerpt(excerpt);
+  };
+
+  const closeExcerptPopup = () => {
+    setSelectedExcerpt(null);
   };
 
   return (
@@ -78,29 +85,45 @@ const ChatBox: React.FC = () => {
         {response && (
           <div style={styles.response}>
             <h2>Jarvis's Response:</h2>
-            <ReactMarkdown>{response}</ReactMarkdown>
-          </div>
-        )}
-
-        {fileResults.length > 0 && (
-          <div style={styles.references}>
-            <h3>References:</h3>
-            <ul style={styles.fileList}>
-              {fileResults.map((file, index) => (
-                <li key={index} style={styles.fileItem}>
-                  <span>{file.file_name}</span>{" "}
-                  <button
-                    style={styles.linkButton}
-                    onClick={() => showExcerptPopup(file.chunk)}
-                  >
-                    Show Excerpt
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <ReactMarkdown>
+              {response}
+            </ReactMarkdown>
+            {fileResults.length > 0 && (
+              <div style={styles.referencesSection}>
+                <h3>References:</h3>
+                <ul style={styles.referencesList}>
+                  {fileResults.map((file, index) => (
+                    <li key={index}>
+                      <a
+                        href="#"
+                        style={styles.referenceLink}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openExcerptPopup(file.chunk);
+                        }}
+                      >
+                        {file.file_name} (Reference {index + 1})
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {selectedExcerpt && (
+        <div style={styles.popupOverlay} onClick={closeExcerptPopup}>
+          <div style={styles.popupContent} onClick={(e) => e.stopPropagation()}>
+            <button style={styles.closeButton} onClick={closeExcerptPopup}>
+              &times;
+            </button>
+            <h3>Excerpt</h3>
+            <p>{selectedExcerpt}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -127,12 +150,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: "column",
     gap: "15px",
     width: "100%",
-    maxWidth: "800px",
+    maxWidth: "600px", // Adjusted for centering
+    margin: "0 auto",  // Centers the form horizontally
   },
   label: {
     fontSize: "18px",
     fontWeight: "bold",
     color: "#555",
+    textAlign: "center",  // Center-align the labels
   },
   select: {
     padding: "10px",
@@ -140,13 +165,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "1px solid #ccc",
     borderRadius: "4px",
     width: "100%",
+    textAlign: "center", // Center-align the select options
   },
   textarea: {
     padding: "15px",
     fontSize: "16px",
     border: "1px solid #ccc",
     borderRadius: "4px",
-    minHeight: "150px",
+    minHeight: "200px", // Increased height of textarea
     resize: "vertical",
     width: "100%",
   },
@@ -177,32 +203,47 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "16px",
     overflowY: "auto",
   },
-  references: {
-    flex: 1,
-    marginLeft: "20px",
-    padding: "10px",
-    backgroundColor: "#f1f1f1",
-    borderRadius: "4px",
-    border: "1px solid #ddd",
+  referencesSection: {
+    marginTop: "20px",
   },
-  fileList: {
+  referencesList: {
     listStyle: "none",
     padding: 0,
   },
-  fileItem: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "10px",
-    fontSize: "14px",
-  },
-  linkButton: {
-    background: "none",
-    border: "none",
+  referenceLink: {
     color: "#007bff",
     textDecoration: "underline",
     cursor: "pointer",
-    fontSize: "14px",
+  },
+  popupOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  popupContent: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "8px",
+    width: "80%",
+    maxWidth: "600px",
+    position: "relative",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+  },
+  closeButton: {
+    position: "absolute",
+    top: "10px",
+    right: "10px",
+    background: "none",
+    border: "none",
+    fontSize: "20px",
+    cursor: "pointer",
   },
 };
 
