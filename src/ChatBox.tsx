@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 
-// Base URLs from environment variables
 const engineeringApiBaseUrl = import.meta.env.VITE_ENGINEERING_API_BASE_URL;
 const solutionArchitectApiBaseUrl = import.meta.env.VITE_SOLUTION_ARCHITECT_API_BASE_URL;
 
 const ChatBox: React.FC = () => {
   const [query, setQuery] = useState<string>("");
   const [response, setResponse] = useState<string | null>(null);
+  const [fileResults, setFileResults] = useState<{ file_name: string; chunk: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [advisorType, setAdvisorType] = useState<string>("engineeringmanagement"); // Default advisor type
 
@@ -16,6 +16,7 @@ const ChatBox: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setResponse(null);
+    setFileResults([]);
 
     try {
       const apiBaseUrl =
@@ -26,13 +27,23 @@ const ChatBox: React.FC = () => {
       const res = await axios.post(`${apiBaseUrl}/query`, {
         prompt: query,
       });
-      setResponse(res.data.response);
+
+      const { response: responseText, search_results: searchResults } = res.data;
+      setResponse(responseText);
+      setFileResults(searchResults.map((result: any) => ({
+        file_name: result.file_name,
+        chunk: result.chunk,
+      })));
     } catch (error) {
       setResponse("Error: Unable to fetch response. Please try again.");
       console.error(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const showExcerptPopup = (excerpt: string) => {
+    alert(excerpt);
   };
 
   return (
@@ -63,12 +74,33 @@ const ChatBox: React.FC = () => {
         </button>
       </form>
 
-      {response && (
-        <div style={styles.response}>
-          <h2>Jarvis's Response:</h2>
-          <ReactMarkdown>{response}</ReactMarkdown>
-        </div>
-      )}
+      <div style={styles.contentContainer}>
+        {response && (
+          <div style={styles.response}>
+            <h2>Jarvis's Response:</h2>
+            <ReactMarkdown>{response}</ReactMarkdown>
+          </div>
+        )}
+
+        {fileResults.length > 0 && (
+          <div style={styles.references}>
+            <h3>References:</h3>
+            <ul style={styles.fileList}>
+              {fileResults.map((file, index) => (
+                <li key={index} style={styles.fileItem}>
+                  <span>{file.file_name}</span>{" "}
+                  <button
+                    style={styles.linkButton}
+                    onClick={() => showExcerptPopup(file.chunk)}
+                  >
+                    Show Excerpt
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -77,10 +109,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
-    height: "100vh",
-    width: "100vw",
+    width: "100%",
     padding: "20px",
     fontFamily: "'Arial', sans-serif",
     boxSizing: "border-box",
@@ -129,17 +160,49 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     width: "100%",
   },
-  response: {
+  contentContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: "20px",
+    width: "100%",
+    maxWidth: "1200px",
+  },
+  response: {
+    flex: 2,
     padding: "20px",
     backgroundColor: "#f9f9f9",
     borderRadius: "4px",
     border: "1px solid #ddd",
     fontSize: "16px",
-    minHeight: "200px",
     overflowY: "auto",
-    width: "100%",
-    maxWidth: "800px",
+  },
+  references: {
+    flex: 1,
+    marginLeft: "20px",
+    padding: "10px",
+    backgroundColor: "#f1f1f1",
+    borderRadius: "4px",
+    border: "1px solid #ddd",
+  },
+  fileList: {
+    listStyle: "none",
+    padding: 0,
+  },
+  fileItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "10px",
+    fontSize: "14px",
+  },
+  linkButton: {
+    background: "none",
+    border: "none",
+    color: "#007bff",
+    textDecoration: "underline",
+    cursor: "pointer",
+    fontSize: "14px",
   },
 };
 
