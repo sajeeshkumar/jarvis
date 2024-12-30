@@ -3,7 +3,7 @@ import axios from "axios";
 import ReactMarkdown from "react-markdown";
 
 const engineeringApiBaseUrl = import.meta.env.VITE_ENGINEERING_API_BASE_URL;
-const solutionArchitectApiBaseUrl = import.meta.env.VITE_SOLUTION_ARCHITECT_API_BASE_URL;
+const solutionArchitectApiBaseUrl = import.meta.env.VITE_ENGINEERING_API_BASE_URL;
 
 const ChatBox: React.FC = () => {
   const [query, setQuery] = useState<string>("");
@@ -25,7 +25,7 @@ const ChatBox: React.FC = () => {
           ? engineeringApiBaseUrl
           : solutionArchitectApiBaseUrl;
 
-      const res = await axios.post(`${apiBaseUrl}/query`, {
+      const res = await axios.post(`${apiBaseUrl}`, {
         prompt: query,
       });
 
@@ -248,3 +248,4 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export default ChatBox;
+  
