@@ -3,7 +3,7 @@ import axios from "axios";
 import ReactMarkdown from "react-markdown";
 
 const engineeringApiBaseUrl = import.meta.env.VITE_ENGINEERING_API_BASE_URL;
-const solutionArchitectApiBaseUrl = import.meta.env.VITE_ENGINEERING_API_BASE_URL;
+const solutionArchitectApiBaseUrl = import.meta.env.VITE_SOLUTION_ARCHITECT_API_BASE_URL;
 
 const ChatBox: React.FC = () => {
   const [query, setQuery] = useState<string>("");
