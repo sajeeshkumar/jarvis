@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 
 const engineeringApiBaseUrl = import.meta.env.VITE_ENGINEERING_API_BASE_URL;
 const solutionArchitectApiBaseUrl = import.meta.env.VITE_SOLUTION_ARCHITECT_API_BASE_URL;
+const dataArchitectureApiBaseUrl = import.meta.env.VITE_DATA_ARCHITECTURE_API_BASE_URL; // Add Data Architecture API base URL
 
 const ChatBox: React.FC = () => {
   const [query, setQuery] = useState<string>("");
@@ -23,7 +24,9 @@ const ChatBox: React.FC = () => {
       const apiBaseUrl =
         advisorType === "engineeringmanagement"
           ? engineeringApiBaseUrl
-          : solutionArchitectApiBaseUrl;
+          : advisorType === "solutionarchitect"
+          ? solutionArchitectApiBaseUrl
+          : dataArchitectureApiBaseUrl; // Handle Data Architecture
 
       const res = await axios.post(`${apiBaseUrl}`, {
         prompt: query,
@@ -66,6 +69,7 @@ const ChatBox: React.FC = () => {
         >
           <option value="engineeringmanagement">Engineering Management Advisor</option>
           <option value="solutionarchitect">Solution Architect Advisor</option>
+          <option value="dataarchitecture">Data Architecture Advisor</option> {/* New Option */}
         </select>
 
         <label style={styles.label}>Your question:</label>
